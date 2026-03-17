@@ -111,8 +111,10 @@ get_weighted_surf <- function(obs_dens, cf_dens,
 
   # 2-1. Convert smoothed outcomes to arrays (pixels, for each time period)
   mat_im <- sapply(smoothed, function(x) spatstat.geom::as.matrix.im(x))
-  pixels <- smoothed[[1]]$dim[1]
-  mat_im <- array(mat_im, dim = c(pixels, pixels, length(smoothed)))
+  
+  mat_im <- array(mat_im, dim = c(smoothed[[1]]$dim[1],
+                                  smoothed[[1]]$dim[2],
+                                  length(smoothed)))
 
   # 2-2. Weight smoothed outcomes for each time period by the weights (smoothed outcome x weight)
   mat_im_weighted <- sweep(mat_im, MARGIN = 3, STATS = weights, FUN = '*') #Weighted smoothed outcomes as matrices
