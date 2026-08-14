@@ -1,6 +1,8 @@
-#' Generate a Hajek estimator for heterogeneity analysis
+#' Sensitivity analysis for a Hajek CATE estimator
 #'
-#' @description A function that returns a Hajek estimator of CATE for a spatial or spatio-temporal effect modifier
+#' @description Evaluates the sensitivity of a Hajek conditional average
+#' treatment effect (CATE) estimator to bounded departures from the fitted
+#' treatment-assignment mechanism.
 #' @param obs observed density
 #' @param cf1 counterfactual density 1
 #' @param cf2 counterfactual density 2
@@ -17,27 +19,24 @@
 #' @param intercept whether to include intercept in the regression model. Default is TRUE. 
 #' @param eval_values a vector of values of the effect modifier for which CATE will be evaluated. Default is a `seq(a,b,length.out=20)` where `a` and `b` are minimum and maximum values of the effect modifier.
 #' @param eval_mat evaluated spline basis (excluding the intercept) matrix at `eval_values`.  If `intercept = TRUE`, then a column of 1 will be add to `eval_mat`.
-#' @param test_beta a vector of integers contain the indices of the coefficients that are included in the hypothesis test. By default, the null hypothesis is that all coefficient  (except the intercept is 0). See details below
-#' @param save_weights whether to save weights. Default is `TRUE`
+#' @param save_weights retained for compatibility; currently has no effect.
+#' @param gamma_vals numeric vector of sensitivity parameter values greater than
+#' or equal to one. The default is `seq(1.05, 1.2, 0.05)`.
 #' @param ... arguments passed onto the function 
 #' 
-#' @returns list of the following:
-#' `est_beta`: estimated regression coefficient
-#' `V_beta`: estimated asymptotic covariance matrix of regression coefficient (normalized by total time periods)   
-#' `chisq_stat`: observed chi-square statistics for the hypothesis test
-#' `p.value`: observed chi-square statistics for the hypothesis test
-#' `specification`: information about the specification of the spline basis and the values on which the CATE is estimated
-#' `est_eval`: estimated CATE evaluted at chosen values
-#' `V_eval`: estimated asymptotic covariance matrix of the estimated CATE values (normalized by total time periods)
-#' `mean_effect`: Mean of the pseudo pixel effect
-#' `total_effect`: Mean of the pseudo effect for the window `entire_window`. It is equal to mean effect times the total number of pixels inside the chosen window
+#' @returns A list containing pointwise feasible lambda intervals, the lambda
+#' values and slack values closest to attaining a zero effect, and indicators of
+#' zero attainability. Corresponding objects with the `_beta` suffix contain
+#' coefficient-level results. The list also contains the first attainable gamma
+#' values, summaries by evaluation point and coefficient, and `eval_values`.
 #'
 #' @details `E_mat` should be a matrix or array of dimensions \eqn{n} by \eqn{m} where \eqn{n} is the product of image dimensions and number of time period,
 #' and \eqn{m} is `nbase`-`intercept`. If you want to construct your own covariate matrix `E_mat`, you should use `get_em_vec()` to convert
-#' the effect modifer(usually a column of a hyperframe) to a vector, and then construct the splines basis based on the vector. The covariate matrix`E_mat` should not 
-#' the column for intercept. The function `get_cate()` will conduct a hypothesis testing on whether all the selected coefficients are 0. `test_beta` is a vector of positive integers specifying the indices
-#' of the chosen beta. The coefficients (except the intercept) are indexed by `1,2,...,nbase-intercept`. By default, it test whether all the coefficients(except the intercept) are 0, and this is testing the
-#' the heterogeneity effect of the effect modifier.
+#' the effect modifier (usually a column of a hyperframe) to a vector, and then construct the spline basis based on the vector. The covariate matrix `E_mat` should not
+#' include the intercept column. For each value in `gamma_vals`, the function uses linear programming to determine whether a zero effect is attainable under the corresponding bounds.
+#'
+#' @importFrom Rglpk Rglpk_solve_LP
+#' @export
 
 get_cate_sensitivity <- function(obs, cf1, cf2, treat, pixel_count_out,lag, trunc_level=0.95, time_after=TRUE,entire_window = NULL,
                                  em = NULL,E_mat = NULL,
@@ -596,7 +595,7 @@ get_cate_sensitivity <- function(obs, cf1, cf2, treat, pixel_count_out,lag, trun
     zero_attainable_beta = zero_attainable_beta,
     first_gamma_zero_attainable_beta = first_gamma_zero_attainable_beta,
     gamma_summary_beta = gamma_summary_beta,
-    eval_alues = eval_values
+    eval_values = eval_values
   )
   
   return(res)

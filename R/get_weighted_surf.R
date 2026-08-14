@@ -65,7 +65,7 @@ get_weighted_surf <- function(obs_dens, cf_dens,
       {
         if (!is.null(cf_dens$estimated_counts)) {
           cf_dens$estimated_counts
-        } else if (is.im(cf_dens)) {
+        } else if (spatstat.geom::is.im(cf_dens)) {
           spatstat.univar::integral(cf_dens, window = entire_window)
         } else {
           vapply(cf_dens, function(im_obj)

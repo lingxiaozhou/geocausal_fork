@@ -9,5 +9,5 @@
 .DS_Store
 .gitignore
 R/.DS_Store
-.git
+^\.git$
 ^vignettes$
